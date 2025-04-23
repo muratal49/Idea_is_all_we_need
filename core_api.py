@@ -8,6 +8,27 @@ from nltk.tokenize import sent_tokenize
 nltk.download('punkt')
 apikey = "YOUR API KEY"
 
+def safe_get(text):
+    return text.strip() if isinstance(text, str) and text.strip() else None
+
+def get_abstract_or_intro(paper):
+    abstract = safe_get(paper.get("abstract"))
+    if abstract:
+        return abstract
+
+    # Try to extract intro from fullText (if available)
+    full_text = paper.get("fullText", "")
+    full_text = re.sub(r'\s+', ' ', full_text).strip()
+
+    # Look for paragraphs that seem like introduction
+    intro_match = re.search(r'(?:^|\n)(?:\d?\s*INTRODUCTION|BACKGROUND)(?:[:\.\n\s]+)(.*?)(?=\n[A-Z ]{3,}|[\n]{2,})', full_text, re.IGNORECASE)
+    if intro_match:
+        intro = intro_match.group(1).strip()
+        if len(intro) > 100:
+            return "Introduction: " + intro
+
+    return None
+
 def query_api(search_url, query, offset=0, limit=20):
     headers = {"Authorization": "Bearer " + apikey}
     url = f"{search_url}?q={query}&limit={limit}&offset={offset}"
@@ -211,8 +232,10 @@ def main():
     with open("core_fulltext_dataset_filtered.jsonl", "a", encoding="utf-8") as f:
         for paper in all_papers:
             full_text = paper.get("fullText", "")
-            abstract = paper.get("abstract", "No abstract available")
             sections = extract_sections(full_text)
+            abstract_or_intro = get_abstract_or_intro(paper)
+            if not abstract_or_intro:
+                continue
 
             # Filter: must have at least one of the three key sections
             if all(sections[k].startswith("No ") for k in ["conclusions", "future_work", "limitations"]):
@@ -220,7 +243,7 @@ def main():
 
 
             record = {
-                "abstract": abstract,
+                "abstract": abstract_or_intro,
                 "conclusions": sections["conclusions"],
                 "limitations": sections["limitations"],
                 "future_work": sections["future_work"]
@@ -236,6 +259,6 @@ if __name__ == "__main__":
 
 
 
-# response = requests.get("https://api.core.ac.uk/v3/search/works?q=covid&limit=5", headers={"Authorization": "Bearer YOUR-API-KEY"})
+# response = requests.get("https://api.core.ac.uk/v3/search/works?q=covid&limit=5", headers={"Authorization": "Bearer YOUR API KEY"})
 # print(response.status_code)
 # print(response.text[:200])
