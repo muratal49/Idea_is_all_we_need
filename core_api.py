@@ -236,6 +236,6 @@ if __name__ == "__main__":
 
 
 
-# response = requests.get("https://api.core.ac.uk/v3/search/works?q=covid&limit=5", headers={"Authorization": "Bearer kgUzxD4K2Z3QjIp6wT1qJBMbVCAfvahn"})
+# response = requests.get("https://api.core.ac.uk/v3/search/works?q=covid&limit=5", headers={"Authorization": "Bearer YOUR-API-KEY"})
 # print(response.status_code)
 # print(response.text[:200])
