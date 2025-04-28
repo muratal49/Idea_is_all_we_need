@@ -6,7 +6,8 @@ import time
 from nltk.tokenize import sent_tokenize
 
 nltk.download('punkt')
-apikey = "YOUR API KEY"
+apikey = 'bgJyXuHdGkrBKt4VsCvR0LeiwE8x39WZ'
+
 
 def safe_get(text):
     return text.strip() if isinstance(text, str) and text.strip() else None
